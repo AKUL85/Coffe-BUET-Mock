@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: coffee_shop
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/Init.sql:/docker-entrypoint-initdb.d/Init.sql
+
+  gateway:
+    build: ./server/gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - coffee-service
+      - member-service
+      - purchase-service
+    restart: always
+
+  coffee-service:
+    build: ./server/coffee-service
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=coffee_shop
+    depends_on:
+      - db
+    restart: always
+
+  member-service:
+    build: ./server/member-service
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=coffee_shop
+    depends_on:
+      - db
+    restart: always
+
+  purchase-service:
+    build: ./server/purchase-service
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=coffee_shop
+    depends_on:
+      - db
+    restart: always
